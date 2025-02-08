@@ -30,14 +30,15 @@ async function readExcel(file) {
     reader.onload = (event) => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: "array" });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const sheet = workbook.Sheets[workbook.SheetNames[0]]; // Assicurati di leggere il foglio giusto
       
       const jsonData = XLSX.utils.sheet_to_json(sheet, {
         header: 1,   
-        blankrows: true, 
-        defval: ""   
+        blankrows: true,  // Mantiene righe vuote
+        defval: ""  // Mantiene le celle vuote invece di eliminarle
       });
 
+      console.log("Numero di righe lette:", jsonData.length); // DEBUG
       resolve(jsonData);
     };
     reader.onerror = (error) => reject(error);
@@ -70,14 +71,18 @@ function addMatchColumn(data1, data2, colName1, colName2) {
   }
 
   // **Aggiungere una nuova colonna accanto alla colonna di confronto**
-  header2.push("MATCH");
+  header2.push("MATCH"); // Aggiunge l'intestazione per la nuova colonna
   for (let j = 1; j < data2.length; j++) {
     const row = data2[j];
-    if (!row) continue;
+    if (!row) {
+      row = new Array(header2.length).fill(""); // Mantieni la riga vuota
+    }
 
     const val = row[idx2] ? row[idx2].toString().trim().toLowerCase() : "";
     row.push(setFile1.has(val) ? "MATCH" : "");  // Nuova colonna con "MATCH" o vuoto
   }
+
+  console.log("Numero di righe finali:", data2.length); // DEBUG
 
   generateExcel(data2);
 }
