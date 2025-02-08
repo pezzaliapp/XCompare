@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XCompare - Confronta File Excel</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="XTM-512.png">
+</head>
+<body>
+    <header>
+        <h1>XCompare</h1>
+        <p>Confronta due file Excel e evidenzia le corrispondenze</p>
+    </header>
+    
+    <main>
+        <div class="upload-section">
+            <label for="file1">Carica il primo file Excel:</label>
+            <input type="file" id="file1" accept=".xlsx">
+            
+            <label for="file2">Carica il secondo file Excel:</label>
+            <input type="file" id="file2" accept=".xlsx">
+        </div>
+        
+        <button id="compareBtn">Confronta</button>
+        
+        <div id="output"></div>
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>
