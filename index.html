@@ -5,13 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XCompare - Confronta File Excel</title>
   
-  <!-- Link al manifest (per PWA) -->
+  <!-- (1) Collegamento al manifest (per la PWA) -->
+  <!-- Se "manifest.json" è nello stesso percorso di questo index.html, così va bene. -->
   <link rel="manifest" href="manifest.json">
   
-  <!-- Icone e CSS -->
+  <!-- (2) Icone e CSS -->
+  <!-- Assicurati che "XTM-192.png" e "XTM-512.png" siano davvero nello stesso percorso. -->
   <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="XTM-512.png">
-  <!-- Stili in file separato -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -22,14 +23,14 @@
 
   <main>
     <div class="upload-section">
-      <!-- File 1 -->
+      <!-- Caricamento File 1 -->
       <label for="file1">Carica il primo file Excel:</label>
       <input type="file" id="file1" accept=".xlsx">
       <!-- Nome colonna File 1 -->
       <label for="columnName1">Nome colonna nel File 1:</label>
       <input type="text" id="columnName1" placeholder="es. Cod.">
 
-      <!-- File 2 -->
+      <!-- Caricamento File 2 -->
       <label for="file2">Carica il secondo file Excel:</label>
       <input type="file" id="file2" accept=".xlsx">
       <!-- Nome colonna File 2 -->
@@ -37,20 +38,25 @@
       <input type="text" id="columnName2" placeholder="es. COD ART.">
     </div>
 
+    <!-- Pulsante per avviare il confronto -->
     <button id="compareBtn">Confronta</button>
+    
+    <!-- Eventuali messaggi o output (se previsti) -->
     <div id="output"></div>
   </main>
   
-  <!-- 1) Libreria XLSX -->
+  <!-- (3) Libreria XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <!-- 2) Il nostro script -->
+  
+  <!-- (4) Il tuo script con la logica (assicurati che esista "app.js" nella stessa cartella) -->
   <script src="app.js"></script>
   
-  <!-- 3) Registrazione del Service Worker (PWA) -->
+  <!-- (5) Registrazione del Service Worker (sempre se "service-worker.js" è in root) -->
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js")
+        navigator.serviceWorker
+          .register("service-worker.js")
           .then(reg => console.log("Service worker registrato:", reg))
           .catch(err => console.error("Registrazione SW fallita:", err));
       });
