@@ -27,12 +27,17 @@ async function readExcel(file) {
 }
 
 function compareData(data1, data2) {
+    // Colonna 1 nel file 1 (indice 0)
     const column1 = data1.map(row => row[0]);
-    const column2 = data2.map(row => row[10]); // Colonna 11 nel file 2 (indice 10)
-    
+
+    // Colonna 11 nel file 2 (indice 10) - Assicurati che esista!
+    const column2 = data2.map(row => row[10]);
+
     const highlightedData = data2.map(row => {
+        // Controlliamo se il valore in colonna 11 (indice 10) esiste in colonna 1 (file1)
         if (column1.includes(row[10])) {
-            row[10] = `**${row[10]}**`; // Simulazione evidenziazione (da gestire in Excel)
+            // Evidenziazione semplice
+            row[10] = `**${row[10]}**`;
         }
         return row;
     });
