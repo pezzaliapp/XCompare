@@ -19,7 +19,7 @@ document.getElementById("compareBtn").addEventListener("click", async () => {
     // Leggiamo i due file in parallelo
     const [data1, data2] = await Promise.all([readExcel(file1), readExcel(file2)]);
     
-    // Per debugging, puoi attivare questi log:
+    // Per debugging (opzionale), puoi attivare questi log:
     // console.log("data1:", data1);
     // console.log("data2:", data2);
     
