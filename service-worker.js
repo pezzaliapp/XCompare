@@ -2,7 +2,7 @@ const CACHE_NAME = "xcompare-cache-v1";
 const FILES_TO_CACHE = [
     "index.html",
     "styles.css",
-    "app.js",
+    "app.js",            // Assicuriamoci che il nome corrisponda
     "manifest.json",
     "XTM-192.png",
     "XTM-512.png"
