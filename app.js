@@ -19,9 +19,7 @@ document.getElementById("compareBtn").addEventListener("click", async () => {
     // Leggiamo i due file in parallelo
     const [data1, data2] = await Promise.all([readExcel(file1), readExcel(file2)]);
     
-    // Per debugging (opzionale), puoi attivare questi log:
-    // console.log("data1:", data1);
-    // console.log("data2:", data2);
+    // Debug (opzionale): console.log("data1:", data1, "data2:", data2);
     
     compareData(data1, data2, colName1, colName2);
   } catch (err) {
@@ -39,7 +37,7 @@ async function readExcel(file) {
       const workbook = XLSX.read(data, { type: "array" });
       // Prende il PRIMO foglio (se ce ne sono di più, adattare).
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      // Converte in array di array
+      // Converte in array di array, con la prima riga come data[0]
       const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
       resolve(jsonData);
     };
@@ -49,11 +47,11 @@ async function readExcel(file) {
 }
 
 function compareData(data1, data2, colName1, colName2) {
-  // data1[0] e data2[0] = righe di header
+  // data1[0] e data2[0] = riga di header (titoli colonna)
   const header1 = data1[0] || [];
   const header2 = data2[0] || [];
 
-  // Trova gli indici di colonna (case-insensitive + trim)
+  // Troviamo l'indice di colonna ignorando maiuscole/spazi
   const idx1 = findColumnIndex(header1, colName1);
   const idx2 = findColumnIndex(header2, colName2);
 
@@ -66,7 +64,7 @@ function compareData(data1, data2, colName1, colName2) {
     return;
   }
 
-  // Creiamo un set dei valori dal primo file (saltando l'header)
+  // Creiamo un set dei valori dal primo file (saltando l’header => i=1)
   const setFile1 = new Set();
   for (let i = 1; i < data1.length; i++) {
     const row = data1[i];
@@ -75,13 +73,13 @@ function compareData(data1, data2, colName1, colName2) {
     }
   }
 
-  // Ora scorriamo il secondo file, dalla riga 1 in poi
+  // Ora scorriamo il secondo file (anch’esso dalla riga 1 in poi)
   for (let j = 1; j < data2.length; j++) {
     const row = data2[j];
     if (!row) continue;
     const val = row[idx2];
 
-    // Se c'è corrispondenza, evidenziamo con **
+    // Se corrisponde, evidenziamo con **
     if (setFile1.has(val)) {
       row[idx2] = `**${val}**`;
     }
@@ -92,10 +90,10 @@ function compareData(data1, data2, colName1, colName2) {
 }
 
 function findColumnIndex(headerRow, userColName) {
-  // Normalizziamo i nomi colonna (maiuscole/minuscole e spazi)
+  // Normalizziamo i nomi colonna e quello digitato dall’utente
   const normalizedHeaderRow = headerRow.map(x => (x || "").toLowerCase().trim());
   const normalizedColName = userColName.toLowerCase().trim();
-  // Cerchiamo l'indice
+  // Cerchiamo l’indice
   return normalizedHeaderRow.indexOf(normalizedColName);
 }
 
