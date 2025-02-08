@@ -4,27 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>XCompare - Confronta File Excel</title>
-
-  <!-- Manifest e stili, icone, ecc. -->
+  
+  <!-- Link al manifest (per PWA) -->
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Icone e CSS -->
   <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="XTM-512.png">
-
+  <link rel="stylesheet" href="styles.css">
+  
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
       text-align: center;
-      margin: 0; padding: 0;
+      margin: 0; 
+      padding: 0;
     }
     header {
       background-color: #2e7d32;
-      color: white; padding: 20px;
+      color: white;
+      padding: 20px;
     }
     main {
-      margin: 20px; padding: 20px;
-      background: white; border-radius: 10px;
+      margin: 20px;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
       box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
       display: inline-block;
     }
@@ -41,11 +47,15 @@
       padding: 5px;
       font-size: 14px;
       width: 200px;
+      text-align: center;
     }
     button {
-      background-color: #2e7d32; color: white;
-      border: none; padding: 10px 20px;
-      font-size: 16px; cursor: pointer;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
       border-radius: 5px;
     }
     button:hover {
@@ -70,25 +80,26 @@
       <input type="file" id="file1" accept=".xlsx">
       <!-- Nome colonna File 1 -->
       <label for="columnName1">Nome colonna nel File 1:</label>
-      <input type="text" id="columnName1" placeholder="es. NomeCliente">
+      <input type="text" id="columnName1" placeholder="es. Cod.">
 
       <!-- File 2 -->
       <label for="file2">Carica il secondo file Excel:</label>
       <input type="file" id="file2" accept=".xlsx">
       <!-- Nome colonna File 2 -->
       <label for="columnName2">Nome colonna nel File 2:</label>
-      <input type="text" id="columnName2" placeholder="es. NomeCliente">
+      <input type="text" id="columnName2" placeholder="es. COD ART.">
     </div>
 
     <button id="compareBtn">Confronta</button>
     <div id="output"></div>
   </main>
-
-  <!-- Libreria XLSX prima del tuo script -->
+  
+  <!-- 1) Libreria XLSX -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <!-- 2) Il nostro script -->
   <script src="app.js"></script>
-
-  <!-- Registrazione Service Worker (se vuoi la PWA) -->
+  
+  <!-- 3) Registrazione del Service Worker (PWA) -->
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
