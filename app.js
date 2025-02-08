@@ -17,7 +17,7 @@ document.getElementById("compareBtn").addEventListener("click", async () => {
 
   try {
     const [data1, data2] = await Promise.all([readExcel(file1), readExcel(file2)]);
-    highlightMatches(data1, data2, colName1, colName2);
+    addMatchColumn(data1, data2, colName1, colName2);
   } catch (err) {
     console.error("Errore nella lettura dei file:", err);
     alert("C’è stato un errore nella lettura dei file Excel.");
@@ -45,7 +45,7 @@ async function readExcel(file) {
   });
 }
 
-function highlightMatches(data1, data2, colName1, colName2) {
+function addMatchColumn(data1, data2, colName1, colName2) {
   const header1 = data1[0] || [];
   const header2 = data2[0] || [];
 
@@ -69,21 +69,17 @@ function highlightMatches(data1, data2, colName1, colName2) {
     }
   }
 
-  const ws = XLSX.utils.aoa_to_sheet(data2);
+  // **Aggiungere una nuova colonna accanto alla colonna di confronto**
+  header2.push("MATCH");
   for (let j = 1; j < data2.length; j++) {
     const row = data2[j];
     if (!row) continue;
-    
+
     const val = row[idx2] ? row[idx2].toString().trim().toLowerCase() : "";
-    if (setFile1.has(val)) {
-      // **Evidenziare la cella** in giallo
-      const cellRef = XLSX.utils.encode_cell({ r: j, c: idx2 });
-      if (!ws[cellRef]) ws[cellRef] = {};
-      ws[cellRef].s = { fill: { fgColor: { rgb: "FFFF00" } } }; // Giallo
-    }
+    row.push(setFile1.has(val) ? "MATCH" : "");  // Nuova colonna con "MATCH" o vuoto
   }
 
-  generateExcel(ws);
+  generateExcel(data2);
 }
 
 function findColumnIndex(headerRow, userColName) {
@@ -92,7 +88,8 @@ function findColumnIndex(headerRow, userColName) {
   return normalizedHeaderRow.indexOf(normalizedColName);
 }
 
-function generateExcel(ws) {
+function generateExcel(data) {
+  const ws = XLSX.utils.aoa_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Risultato");
 
