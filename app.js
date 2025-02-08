@@ -17,7 +17,7 @@ document.getElementById("compareBtn").addEventListener("click", async () => {
 
   try {
     const [data1, data2] = await Promise.all([readExcel(file1), readExcel(file2)]);
-    compareAndHighlight(data1, data2, colName1, colName2);
+    highlightMatches(data1, data2, colName1, colName2);
   } catch (err) {
     console.error("Errore nella lettura dei file:", err);
     alert("C’è stato un errore nella lettura dei file Excel.");
@@ -33,9 +33,9 @@ async function readExcel(file) {
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       
       const jsonData = XLSX.utils.sheet_to_json(sheet, {
-        header: 1,   // Mantiene la riga di header
-        blankrows: true, // Mantiene le righe vuote
-        defval: ""   // Mantiene le celle vuote invece di eliminarle
+        header: 1,   
+        blankrows: true, 
+        defval: ""   
       });
 
       resolve(jsonData);
@@ -45,7 +45,7 @@ async function readExcel(file) {
   });
 }
 
-function compareAndHighlight(data1, data2, colName1, colName2) {
+function highlightMatches(data1, data2, colName1, colName2) {
   const header1 = data1[0] || [];
   const header2 = data2[0] || [];
 
@@ -76,7 +76,7 @@ function compareAndHighlight(data1, data2, colName1, colName2) {
     
     const val = row[idx2] ? row[idx2].toString().trim().toLowerCase() : "";
     if (setFile1.has(val)) {
-      // Applica uno stile alla cella
+      // **Evidenziare la cella** in giallo
       const cellRef = XLSX.utils.encode_cell({ r: j, c: idx2 });
       if (!ws[cellRef]) ws[cellRef] = {};
       ws[cellRef].s = { fill: { fgColor: { rgb: "FFFF00" } } }; // Giallo
