@@ -1,60 +1,37 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XCompare - Confronta File Excel</title>
-  
-  <!-- (1) Collegamento al manifest (per la PWA) -->
-  <link rel="manifest" href="manifest.json">
-  
-  <!-- (2) Icone e CSS -->
-  <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="XTM-512.png">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header>
-    <h1>XCompare</h1>
-    <p>Confronta due file Excel e evidenzia le corrispondenze</p>
-  </header>
+<form id="uploadForm" enctype="multipart/form-data">
+    <label for="file1">Carica il primo file Excel:</label>
+    <input type="file" id="file1" name="file1" accept=".xlsx">
+    <input type="text" id="col1_name" name="col1_name" placeholder="Nome colonna nel File 1 (es. Cod.)">
+    
+    <label for="file2">Carica il secondo file Excel:</label>
+    <input type="file" id="file2" name="file2" accept=".xlsx">
+    <input type="text" id="col2_name" name="col2_name" placeholder="Nome colonna nel File 2 (es. COD ART.)">
+    
+    <button type="submit">Confronta</button>
+</form>
 
-  <main>
-    <div class="upload-section">
-      <!-- File 1 -->
-      <label for="file1">Carica il primo file Excel:</label>
-      <input type="file" id="file1" accept=".xlsx">
-      <!-- Nome colonna File 1 -->
-      <label for="columnName1">Nome colonna nel File 1:</label>
-      <input type="text" id="columnName1" placeholder="Es: Cod.">
-      
-      <!-- File 2 -->
-      <label for="file2">Carica il secondo file Excel:</label>
-      <input type="file" id="file2" accept=".xlsx">
-      <!-- Nome colonna File 2 -->
-      <label for="columnName2">Nome colonna nel File 2:</label>
-      <input type="text" id="columnName2" placeholder="Es: COD ART.">
-    </div>
+<p><a id="downloadLink" style="display:none;" download>Scarica il file aggiornato</a></p>
 
-    <button id="compareBtn">Confronta</button>
-    <div id="output"></div>
-  </main>
-  
-  <!-- (3) Libreria XLSX -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  
-  <!-- (4) Il tuo script -->
-  <script src="app.js"></script>
-  
-  <!-- (5) Registrazione del Service Worker (PWA) -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js")
-          .then(reg => console.log("Service worker registrato:", reg))
-          .catch(err => console.error("Registrazione SW fallita:", err));
-      });
+<script>
+document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    
+    let formData = new FormData();
+    formData.append("file1", document.getElementById("file1").files[0]);
+    formData.append("file2", document.getElementById("file2").files[0]);
+    formData.append("col1_name", document.getElementById("col1_name").value.trim());
+    formData.append("col2_name", document.getElementById("col2_name").value.trim());
+
+    let response = await fetch("/upload", { method: "POST", body: formData });
+
+    if (response.ok) {
+        let blob = await response.blob();
+        let link = document.getElementById("downloadLink");
+        link.href = URL.createObjectURL(blob);
+        link.style.display = "block";
+        link.textContent = "Scarica il file aggiornato";
+    } else {
+        alert("Errore nel confronto dei file!");
     }
-  </script>
-</body>
-</html>
+});
+</script>
