@@ -1,54 +1,13 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, request, render_template, send_file, jsonify
 import os
 import pandas as pd
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
 app = Flask(__name__)
+
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def highlight_matches(file1_path, file2_path, col1_name, col2_name):
-    # Carica i file Excel
-    df1 = pd.read_excel(file1_path)
-    df2 = pd.read_excel(file2_path)
-    
-    # Normalizza i nomi delle colonne
-    df1.columns = df1.columns.str.lower().str.strip()
-    df2.columns = df2.columns.str.lower().str.strip()
-    col1_name = col1_name.lower().strip()
-    col2_name = col2_name.lower().strip()
-    
-    # Debug: Mostra le colonne disponibili
-    print("Colonne disponibili nel File 1:", df1.columns.tolist())
-    print("Colonne disponibili nel File 2:", df2.columns.tolist())
-    
-    # Verifica che le colonne esistano
-    if col1_name not in df1.columns or col2_name not in df2.columns:
-        return None, f"Colonna '{col1_name}' o '{col2_name}' non trovata nei file."
-    
-    # Set dei valori nella colonna del primo file
-    cod_set = set(df1[col1_name].astype(str).str.strip())
-    
-    # Apri il file 2 con openpyxl per evidenziare
-    wb = load_workbook(file2_path)
-    ws = wb.active
-    col_idx = list(df2.columns).index(col2_name) + 1  # Indice della colonna in Excel (1-based)
-    
-    # Definiamo il colore giallo per evidenziare
-    yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
-    
-    # Scansioniamo la colonna e applichiamo il colore alle corrispondenze
-    for row in range(2, ws.max_row + 1):  # Partiamo dalla seconda riga per ignorare l'intestazione
-        cell_value = str(ws.cell(row=row, column=col_idx).value).strip()
-        if cell_value in cod_set:
-            ws.cell(row=row, column=col_idx).fill = yellow_fill
-    
-    output_path = os.path.join(UPLOAD_FOLDER, "File_2_Highlighted.xlsx")
-    wb.save(output_path)
-    wb.close()  # Chiude il file per garantire che non ci siano collegamenti attivi
-    
-    return output_path, None
 
 @app.route("/")
 def home():
@@ -56,26 +15,78 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload_files():
-    file1 = request.files["file1"]
-    file2 = request.files["file2"]
-    col1_name = request.form["col1_name"].strip()
-    col2_name = request.form["col2_name"].strip()
-    
-    if not file1 or not file2 or not col1_name or not col2_name:
-        return "Errore: Carica entrambi i file e specifica le colonne", 400
-    
-    file1_path = os.path.join(UPLOAD_FOLDER, file1.filename)
-    file2_path = os.path.join(UPLOAD_FOLDER, file2.filename)
-    
-    file1.save(file1_path)
-    file2.save(file2_path)
-    
-    output_path, error = highlight_matches(file1_path, file2_path, col1_name, col2_name)
-    
-    if error:
-        return error, 400
-    
-    return send_file(output_path, as_attachment=True)
+    try:
+        # Recupera i file e i nomi delle colonne
+        file1 = request.files["file1"]
+        file2 = request.files["file2"]
+        col1_name = request.form["col1_name"].strip()
+        col2_name = request.form["col2_name"].strip()
+
+        # Controlla che i file e i nomi delle colonne siano stati forniti
+        if not file1 or not file2 or not col1_name or not col2_name:
+            return jsonify({"error": "Errore: Carica entrambi i file e specifica le colonne"}), 400
+
+        # Salva i file temporaneamente
+        file1_path = os.path.join(UPLOAD_FOLDER, file1.filename)
+        file2_path = os.path.join(UPLOAD_FOLDER, file2.filename)
+
+        file1.save(file1_path)
+        file2.save(file2_path)
+
+        # Esegui il confronto e genera il file evidenziato
+        output_path, error_message = highlight_matches(file1_path, file2_path, col1_name, col2_name)
+
+        if error_message:
+            return jsonify({"error": error_message}), 400
+
+        return send_file(output_path, as_attachment=True)
+
+    except Exception as e:
+        return jsonify({"error": f"Errore nel confronto dei file: {str(e)}"}), 500
+
+def highlight_matches(file1_path, file2_path, col1_name, col2_name):
+    try:
+        df1 = pd.read_excel(file1_path, dtype=str)
+        df2 = pd.read_excel(file2_path, dtype=str)
+
+        if col1_name not in df1.columns or col2_name not in df2.columns:
+            return None, f"Errore: le colonne '{col1_name}' o '{col2_name}' non esistono nei file caricati."
+
+        # Ottieni i valori unici della colonna nel primo file
+        cod_set = set(df1[col1_name].dropna().str.strip())
+
+        # Apri il secondo file con OpenPyXL per evidenziare le corrispondenze
+        wb = load_workbook(file2_path)
+        ws = wb.active
+
+        # Trova l'indice della colonna cercata
+        col_idx = None
+        for col in range(1, ws.max_column + 1):
+            if ws.cell(row=1, column=col).value == col2_name:
+                col_idx = col
+                break
+
+        if col_idx is None:
+            return None, f"Errore: la colonna '{col2_name}' non è stata trovata nel file 2."
+
+        # Definisci il colore giallo per evidenziare
+        yellow_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
+
+        # Scansiona la colonna e applica il colore alle corrispondenze
+        for row in range(2, ws.max_row + 1):
+            cell_value = str(ws.cell(row=row, column=col_idx).value).strip()
+            if cell_value in cod_set:
+                ws.cell(row=row, column=col_idx).fill = yellow_fill
+
+        # Salva il file modificato
+        output_path = os.path.join(UPLOAD_FOLDER, "File_2_Highlighted.xlsx")
+        wb.save(output_path)
+        wb.close()
+
+        return output_path, None
+
+    except Exception as e:
+        return None, f"Errore durante l'elaborazione: {str(e)}"
 
 if __name__ == "__main__":
     app.run(debug=True)
