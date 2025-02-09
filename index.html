@@ -1,37 +1,121 @@
-<form id="uploadForm" enctype="multipart/form-data">
-    <label for="file1">Carica il primo file Excel:</label>
-    <input type="file" id="file1" name="file1" accept=".xlsx">
-    <input type="text" id="col1_name" name="col1_name" placeholder="Nome colonna nel File 1 (es. Cod.)">
-    
-    <label for="file2">Carica il secondo file Excel:</label>
-    <input type="file" id="file2" name="file2" accept=".xlsx">
-    <input type="text" id="col2_name" name="col2_name" placeholder="Nome colonna nel File 2 (es. COD ART.)">
-    
-    <button type="submit">Confronta</button>
-</form>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XCompare - Confronto Excel</title>
 
-<p><a id="downloadLink" style="display:none;" download>Scarica il file aggiornato</a></p>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="XTM-192.png">
+    <meta name="theme-color" content="#2e7d32">
 
-<script>
-document.getElementById("uploadForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    
-    let formData = new FormData();
-    formData.append("file1", document.getElementById("file1").files[0]);
-    formData.append("file2", document.getElementById("file2").files[0]);
-    formData.append("col1_name", document.getElementById("col1_name").value.trim());
-    formData.append("col2_name", document.getElementById("col2_name").value.trim());
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #installButton {
+            display: none;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        #downloadLink {
+            display: none;
+            color: #007BFF;
+            font-size: 18px;
+            margin-top: 20px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
 
-    let response = await fetch("/upload", { method: "POST", body: formData });
+    <h1>XCompare</h1>
+    <p>Carica due file Excel e confronta le colonne selezionate</p>
 
-    if (response.ok) {
-        let blob = await response.blob();
-        let link = document.getElementById("downloadLink");
-        link.href = URL.createObjectURL(blob);
-        link.style.display = "block";
-        link.textContent = "Scarica il file aggiornato";
-    } else {
-        alert("Errore nel confronto dei file!");
-    }
-});
-</script>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="file1">Carica il primo file Excel:</label>
+        <input type="file" id="file1" name="file1" accept=".xlsx" required>
+        <input type="text" id="col1_name" name="col1_name" placeholder="Nome colonna nel File 1 (es. Cod.)" required>
+
+        <label for="file2">Carica il secondo file Excel:</label>
+        <input type="file" id="file2" name="file2" accept=".xlsx" required>
+        <input type="text" id="col2_name" name="col2_name" placeholder="Nome colonna nel File 2 (es. COD ART.)" required>
+
+        <button type="submit">Confronta</button>
+    </form>
+
+    <a id="downloadLink" download>Scarica il file aggiornato</a>
+    <button id="installButton">Installa XCompare</button>
+
+    <script>
+        // Service Worker Registration
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/service-worker.js")
+                .then(() => console.log("✅ Service Worker registrato!"))
+                .catch(err => console.log("❌ Errore Service Worker:", err));
+        }
+
+        // Installazione PWA
+        let deferredPrompt;
+        window.addEventListener("beforeinstallprompt", (event) => {
+            event.preventDefault();
+            deferredPrompt = event;
+            document.getElementById("installButton").style.display = "block";
+
+            document.getElementById("installButton").addEventListener("click", () => {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choice) => {
+                    if (choice.outcome === "accepted") {
+                        console.log("✅ PWA Installata!");
+                    } else {
+                        console.log("❌ Installazione annullata");
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
+
+        // Upload e confronto file
+        document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            let formData = new FormData();
+            formData.append("file1", document.getElementById("file1").files[0]);
+            formData.append("file2", document.getElementById("file2").files[0]);
+            formData.append("col1_name", document.getElementById("col1_name").value.trim());
+            formData.append("col2_name", document.getElementById("col2_name").value.trim());
+
+            try {
+                let response = await fetch("/upload", { method: "POST", body: formData });
+
+                if (!response.ok) {
+                    throw new Error("Errore nel confronto dei file!");
+                }
+
+                let blob = await response.blob();
+                let link = document.getElementById("downloadLink");
+                link.href = URL.createObjectURL(blob);
+                link.style.display = "block";
+                link.textContent = "Scarica il file aggiornato";
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    </script>
+
+</body>
+</html>
