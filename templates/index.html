@@ -2,16 +2,17 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XCompare - Confronta File Excel</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2d73d2">
-
-    <!-- Link ai file CSS -->
-    <link rel="stylesheet" href="styles.css">
-
-    <!-- PWA Icon -->
-    <link rel="icon" type="image/png" href="XTM-192.png">
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+            .then(reg => console.log("Service Worker registrato:", reg))
+            .catch(err => console.log("Service Worker errore:", err));
+        }
+    </script>
 </head>
 <body>
     <h1>XCompare - Confronta File Excel</h1>
@@ -20,25 +21,17 @@
         <label for="file1">Carica il primo file Excel:</label>
         <input type="file" id="file1" name="file1" accept=".xlsx">
         <input type="text" id="col1_name" name="col1_name" placeholder="Nome colonna nel File 1 (es. Cod.)">
-        
+
         <label for="file2">Carica il secondo file Excel:</label>
         <input type="file" id="file2" name="file2" accept=".xlsx">
         <input type="text" id="col2_name" name="col2_name" placeholder="Nome colonna nel File 2 (es. COD ART.)">
-        
+
         <button type="submit">Confronta</button>
     </form>
 
     <p><a id="downloadLink" style="display:none;" download>Scarica il file aggiornato</a></p>
 
     <script>
-        // **Registrazione Service Worker**
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("service-worker.js")
-                .then(() => console.log("Service Worker registrato!"))
-                .catch(error => console.error("Errore Service Worker:", error));
-        }
-
-        // **Gestione Upload**
         document.getElementById("uploadForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             
@@ -48,21 +41,16 @@
             formData.append("col1_name", document.getElementById("col1_name").value.trim());
             formData.append("col2_name", document.getElementById("col2_name").value.trim());
 
-            try {
-                let response = await fetch("/upload", { method: "POST", body: formData });
+            let response = await fetch("/upload", { method: "POST", body: formData });
 
-                if (response.ok) {
-                    let blob = await response.blob();
-                    let link = document.getElementById("downloadLink");
-                    link.href = URL.createObjectURL(blob);
-                    link.style.display = "block";
-                    link.textContent = "Scarica il file aggiornato";
-                } else {
-                    alert("Errore nel confronto dei file!");
-                }
-            } catch (error) {
-                alert("Errore durante l'invio dei file.");
-                console.error("Errore:", error);
+            if (response.ok) {
+                let blob = await response.blob();
+                let link = document.getElementById("downloadLink");
+                link.href = URL.createObjectURL(blob);
+                link.style.display = "block";
+                link.textContent = "Scarica il file aggiornato";
+            } else {
+                alert("Errore nel confronto dei file!");
             }
         });
     </script>

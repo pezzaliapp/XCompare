@@ -1,10 +1,10 @@
-const CACHE_NAME = "xcompare-cache-v4";
+const CACHE_NAME = "xcompare-cache-v2";
 const urlsToCache = [
   "/",
-  "/index.html",
-  "/styles.css",
-  "/app.js",
-  "/manifest.json",
+  "/static/index.html",
+  "/static/styles.css",
+  "/static/app.js",
+  "/static/manifest.json",
   "/static/XTM-192.png",
   "/static/XTM-512.png"
 ];
@@ -17,6 +17,15 @@ self.addEventListener("install", (event) => {
     })
   );
   self.skipWaiting();
+});
+
+// Fetch Requests
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
 });
 
 // Activate Service Worker
@@ -33,13 +42,4 @@ self.addEventListener("activate", (event) => {
     })
   );
   self.clients.claim();
-});
-
-// Fetch Requests
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
 });
