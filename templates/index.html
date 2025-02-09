@@ -2,16 +2,16 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XCompare - Confronto Excel</title>
-
-    <!-- PWA Support -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>XCompare - Confronta File Excel</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2e7d32">
-    <link rel="icon" type="image/png" sizes="192x192" href="XTM-192.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="XTM-192.png">
+    <meta name="theme-color" content="#2d73d2">
 
+    <!-- Link ai file CSS -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- PWA Icon -->
+    <link rel="icon" type="image/png" href="XTM-192.png">
 </head>
 <body>
     <h1>XCompare - Confronta File Excel</h1>
@@ -20,20 +20,25 @@
         <label for="file1">Carica il primo file Excel:</label>
         <input type="file" id="file1" name="file1" accept=".xlsx">
         <input type="text" id="col1_name" name="col1_name" placeholder="Nome colonna nel File 1 (es. Cod.)">
-
+        
         <label for="file2">Carica il secondo file Excel:</label>
         <input type="file" id="file2" name="file2" accept=".xlsx">
         <input type="text" id="col2_name" name="col2_name" placeholder="Nome colonna nel File 2 (es. COD ART.)">
-
+        
         <button type="submit">Confronta</button>
     </form>
 
     <p><a id="downloadLink" style="display:none;" download>Scarica il file aggiornato</a></p>
 
-    <!-- Bottone per installare la PWA -->
-    <button id="installButton" style="display: none;">Installa XCompare</button>
-
     <script>
+        // **Registrazione Service Worker**
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js")
+                .then(() => console.log("Service Worker registrato!"))
+                .catch(error => console.error("Errore Service Worker:", error));
+        }
+
+        // **Gestione Upload**
         document.getElementById("uploadForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             
@@ -43,44 +48,22 @@
             formData.append("col1_name", document.getElementById("col1_name").value.trim());
             formData.append("col2_name", document.getElementById("col2_name").value.trim());
 
-            let response = await fetch("/upload", { method: "POST", body: formData });
+            try {
+                let response = await fetch("/upload", { method: "POST", body: formData });
 
-            if (response.ok) {
-                let blob = await response.blob();
-                let link = document.getElementById("downloadLink");
-                link.href = URL.createObjectURL(blob);
-                link.style.display = "block";
-                link.textContent = "Scarica il file aggiornato";
-            } else {
-                alert("Errore nel confronto dei file!");
+                if (response.ok) {
+                    let blob = await response.blob();
+                    let link = document.getElementById("downloadLink");
+                    link.href = URL.createObjectURL(blob);
+                    link.style.display = "block";
+                    link.textContent = "Scarica il file aggiornato";
+                } else {
+                    alert("Errore nel confronto dei file!");
+                }
+            } catch (error) {
+                alert("Errore durante l'invio dei file.");
+                console.error("Errore:", error);
             }
-        });
-
-        // Registrazione del Service Worker
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("/service-worker.js")
-                .then(() => console.log("✅ Service Worker registrato"))
-                .catch(err => console.log("❌ Errore Service Worker:", err));
-        }
-
-        // Gestione dell'installazione della PWA
-        let deferredPrompt;
-        window.addEventListener("beforeinstallprompt", (event) => {
-            event.preventDefault();
-            deferredPrompt = event;
-            document.getElementById("installButton").style.display = "block";
-
-            document.getElementById("installButton").addEventListener("click", () => {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choice) => {
-                    if (choice.outcome === "accepted") {
-                        console.log("✅ PWA Installata!");
-                    } else {
-                        console.log("❌ Installazione annullata");
-                    }
-                    deferredPrompt = null;
-                });
-            });
         });
     </script>
 </body>

@@ -1,12 +1,12 @@
-const CACHE_NAME = "xcompare-cache-v2"; // Cambiato nome per forzare aggiornamento cache
+const CACHE_NAME = "xcompare-cache-v4";
 const urlsToCache = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
   "/manifest.json",
-  "/XTM-192.png",
-  "/XTM-512.png"
+  "/static/XTM-192.png",
+  "/static/XTM-512.png"
 ];
 
 // Install Service Worker
@@ -19,16 +19,7 @@ self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
-// Fetch Requests
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
-});
-
-// Activate Service Worker e cancella vecchi cache
+// Activate Service Worker
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -42,4 +33,13 @@ self.addEventListener("activate", (event) => {
     })
   );
   self.clients.claim();
+});
+
+// Fetch Requests
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request);
+    })
+  );
 });

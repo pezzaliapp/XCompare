@@ -2,20 +2,18 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>XCompare - Confronta File Excel</title>
-    
-    <!-- Icona e manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2d73d2">
-    <link rel="icon" type="image/png" sizes="192x192" href="/XTM-192.png">
-    <link rel="apple-touch-icon" href="/XTM-192.png">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="/styles.css">
+
+    <!-- Link ai file CSS -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- PWA Icon -->
+    <link rel="icon" type="image/png" href="XTM-192.png">
 </head>
 <body>
-
     <h1>XCompare - Confronta File Excel</h1>
 
     <form id="uploadForm" enctype="multipart/form-data">
@@ -32,43 +30,41 @@
 
     <p><a id="downloadLink" style="display:none;" download>Scarica il file aggiornato</a></p>
 
-    <!-- Registrazione Service Worker -->
     <script>
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("/service-worker.js")
-        .then((registration) => {
-            console.log("✅ Service Worker registrato con successo!", registration);
-        })
-        .catch((error) => {
-            console.error("❌ Service Worker fallito:", error);
-        });
-    }
-    </script>
-
-    <!-- Logica JavaScript -->
-    <script>
-    document.getElementById("uploadForm").addEventListener("submit", async (event) => {
-        event.preventDefault();
-        
-        let formData = new FormData();
-        formData.append("file1", document.getElementById("file1").files[0]);
-        formData.append("file2", document.getElementById("file2").files[0]);
-        formData.append("col1_name", document.getElementById("col1_name").value.trim());
-        formData.append("col2_name", document.getElementById("col2_name").value.trim());
-
-        let response = await fetch("/upload", { method: "POST", body: formData });
-
-        if (response.ok) {
-            let blob = await response.blob();
-            let link = document.getElementById("downloadLink");
-            link.href = URL.createObjectURL(blob);
-            link.style.display = "block";
-            link.textContent = "Scarica il file aggiornato";
-        } else {
-            alert("Errore nel confronto dei file!");
+        // **Registrazione Service Worker**
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("service-worker.js")
+                .then(() => console.log("Service Worker registrato!"))
+                .catch(error => console.error("Errore Service Worker:", error));
         }
-    });
-    </script>
 
+        // **Gestione Upload**
+        document.getElementById("uploadForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            let formData = new FormData();
+            formData.append("file1", document.getElementById("file1").files[0]);
+            formData.append("file2", document.getElementById("file2").files[0]);
+            formData.append("col1_name", document.getElementById("col1_name").value.trim());
+            formData.append("col2_name", document.getElementById("col2_name").value.trim());
+
+            try {
+                let response = await fetch("/upload", { method: "POST", body: formData });
+
+                if (response.ok) {
+                    let blob = await response.blob();
+                    let link = document.getElementById("downloadLink");
+                    link.href = URL.createObjectURL(blob);
+                    link.style.display = "block";
+                    link.textContent = "Scarica il file aggiornato";
+                } else {
+                    alert("Errore nel confronto dei file!");
+                }
+            } catch (error) {
+                alert("Errore durante l'invio dei file.");
+                console.error("Errore:", error);
+            }
+        });
+    </script>
 </body>
 </html>
